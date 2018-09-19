@@ -286,9 +286,9 @@ export default class Table<T> extends React.Component<
 	}
 
 	setRowSelection = (selectedRows: T[]): void => {
-		const rowKey = this.props.rowKey;
+		const { rowKey, data } = this.props;
 
-		if (!rowKey) {
+		if (!rowKey || !data) {
 			return;
 		}
 
@@ -301,14 +301,20 @@ export default class Table<T> extends React.Component<
 		const checkedItems = filter(this.props.data, x =>
 			includes(selectedRowsIds, x[rowKey]),
 		);
-		const allChecked = checkedItems.length === this.props.data.length;
+		const allChecked = checkedItems.length === data.length;
 
 		this.setState({ allChecked, checkedItems });
 	};
 
 	toggleAllChecked = () => {
+		const { data } = this.props;
+
+		if (!data) {
+			return;
+		}
+
 		const allChecked = !this.state.allChecked;
-		const checkedItems = allChecked ? this.props.data.slice() : [];
+		const checkedItems = allChecked ? data.slice() : [];
 
 		if (this.props.onCheck) {
 			this.props.onCheck(checkedItems);
@@ -366,6 +372,10 @@ export default class Table<T> extends React.Component<
 
 	getElementFromKey(key: string) {
 		const { data, rowKey } = this.props;
+		if (!data) {
+			return;
+		}
+
 		if (rowKey) {
 			// Normalize the key value to a string for comparison, because data
 			// attributes on elements are always strings
@@ -425,7 +435,8 @@ export default class Table<T> extends React.Component<
 		const { getRowHref, getRowClass } = props;
 
 		const { page } = this.state;
-		const totalItems = data.length;
+		const items = data || [];
+		const totalItems = items.length;
 
 		const _itemsPerpage = itemsPerPage || 50;
 		const _pagerPosition = pagerPosition || 'top';
@@ -435,7 +446,7 @@ export default class Table<T> extends React.Component<
 			? Math.min((page + 1) * _itemsPerpage, totalItems)
 			: totalItems;
 
-		const sortedData = this.sortData(data).slice(lowerBound, upperBound);
+		const sortedData = this.sortData(items).slice(lowerBound, upperBound);
 
 		return (
 			<>
